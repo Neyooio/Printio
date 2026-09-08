@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="description" content="Upload your documents and images for printing">
+    <title>Printio — Upload Files</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                    <rect x="6" y="14" width="12" height="8"></rect>
+                </svg>
+                <h1>Printio</h1>
+            </div>
+            <p class="subtitle">Upload your files for printing</p>
+        </header>
+
+        <!-- Drop Zone -->
+        <div class="dropzone" id="dropzone">
+            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <p class="dropzone-text">Tap to select files or drag & drop</p>
+            <p class="dropzone-hint">PDF, Word, Excel, PowerPoint, Images</p>
+            <input type="file" id="fileInput" multiple accept=".pdf,.docx,.doc,.xlsx,.pptx,.jpg,.jpeg,.png" hidden>
+        </div>
+
+        <!-- File Queue -->
+        <div class="file-queue" id="fileQueue"></div>
+
+        <!-- Upload Button -->
+        <button class="upload-btn" id="uploadBtn" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <span>Upload Files</span>
+        </button>
+
+        <!-- Status Area -->
+        <div class="status-area" id="statusArea" hidden>
+            <div class="overall-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="overallProgress"></div>
+                </div>
+                <span class="progress-text" id="progressText">0%</span>
+            </div>
+        </div>
+
+        <!-- Completed Message -->
+        <div class="complete-message" id="completeMessage" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="48" height="48">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            <h2>Upload Complete!</h2>
+            <p>Your files have been received. The operator will process them shortly.</p>
+            <button class="upload-more-btn" id="uploadMoreBtn">Upload More Files</button>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Accepted formats: PDF, DOCX, DOC, XLSX, PPTX, JPG, PNG</p>
+            <p>Max file sharing speed • Resumable transfers</p>
+        </footer>
+    </div>
+
+    <script src="/upload.js"></script>
+</body>
+</html>

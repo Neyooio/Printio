@@ -1,0 +1,48 @@
+{
+  "$schema": "https://raw.githubusercontent.com/nicegui/tauri/v2/crates/tauri-config-schema/schema.json",
+  "productName": "Printio",
+  "version": "0.1.0",
+  "identifier": "com.printio.app",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://127.0.0.1:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Printio - Digital Drop Box",
+        "width": 1024,
+        "height": 630,
+        "minWidth": 1024,
+        "minHeight": 630,
+        "maxWidth": 1024,
+        "maxHeight": 630,
+        "resizable": false,
+        "maximizable": false,
+        "fullscreen": false,
+        "decorations": true,
+        "transparent": false,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "resources": [
+      "portal/**/*"
+    ]
+  }
+}

@@ -9,6 +9,7 @@ import {
   Trash2,
   Calendar,
 } from "lucide-react";
+import { getFileIcon } from "../../lib/fileTypeHelper";
 
 export default function AuditHistoryView() {
   const [query, setQuery] = useState("");
@@ -55,9 +56,9 @@ export default function AuditHistoryView() {
   return (
     <div className="flex-1 h-full flex flex-col gap-3 p-1 min-h-0 select-none overflow-hidden font-sans">
       {/* Top Header */}
-      <div className="flex items-center justify-between bg-zinc-800/30 border border-zinc-700/30 rounded-2xl px-5 py-3 shadow-md flex-shrink-0">
+      <div className="flex items-center justify-between bg-gradient-to-b from-zinc-800/60 to-zinc-900/80 backdrop-blur-xl border border-white/5 border-t-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.4)] rounded-2xl px-5 py-3 flex-shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+          <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-[0_0_15px_rgba(74,222,128,0.2)]">
             <History className="w-4 h-4" />
           </div>
           <div>
@@ -71,15 +72,15 @@ export default function AuditHistoryView() {
         </div>
 
         {/* Clear Archive */}
-        <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-xs font-medium text-zinc-300 transition-all active:scale-95">
+        <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black/40 hover:bg-black/60 border border-white/5 border-t-black/60 shadow-inner text-xs font-medium text-zinc-300 transition-all active:scale-95 cursor-pointer">
           <Trash2 className="w-3.5 h-3.5 text-zinc-400" /> Purge Cache
         </button>
       </div>
 
       {/* Analytics KPI Row */}
       <div className="grid grid-cols-3 gap-3 flex-shrink-0">
-        <div className="bg-zinc-800/30 border border-zinc-700/30 rounded-2xl p-3.5 flex items-center gap-3 shadow-md">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+        <div className="bg-gradient-to-b from-zinc-800/60 to-zinc-900/80 backdrop-blur-xl border border-white/5 border-t-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.4)] rounded-2xl p-3.5 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shadow-[0_0_15px_rgba(74,222,128,0.2)]">
             <FileCheck className="w-5 h-5" />
           </div>
           <div>
@@ -88,8 +89,8 @@ export default function AuditHistoryView() {
           </div>
         </div>
 
-        <div className="bg-zinc-800/30 border border-zinc-700/30 rounded-2xl p-3.5 flex items-center gap-3 shadow-md">
-          <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
+        <div className="bg-gradient-to-b from-zinc-800/60 to-zinc-900/80 backdrop-blur-xl border border-white/5 border-t-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.4)] rounded-2xl p-3.5 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 shadow-[0_0_15px_rgba(56,189,248,0.2)]">
             <Coins className="w-5 h-5" />
           </div>
           <div>
@@ -98,8 +99,8 @@ export default function AuditHistoryView() {
           </div>
         </div>
 
-        <div className="bg-zinc-800/30 border border-zinc-700/30 rounded-2xl p-3.5 flex items-center gap-3 shadow-md">
-          <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+        <div className="bg-gradient-to-b from-zinc-800/60 to-zinc-900/80 backdrop-blur-xl border border-white/5 border-t-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.4)] rounded-2xl p-3.5 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
             <TrendingUp className="w-5 h-5" />
           </div>
           <div>
@@ -110,8 +111,8 @@ export default function AuditHistoryView() {
       </div>
 
       {/* Searchable Archive Log */}
-      <div className="flex-1 bg-zinc-800/30 border border-zinc-700/30 rounded-2xl overflow-hidden shadow-xl flex flex-col min-h-0">
-        <div className="px-4 py-2.5 border-b border-zinc-700/40 flex items-center gap-2 bg-zinc-900/40">
+      <div className="flex-1 bg-gradient-to-b from-zinc-800/60 to-zinc-900/80 backdrop-blur-xl border border-white/5 border-t-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.4)] rounded-2xl overflow-hidden flex flex-col min-h-0">
+        <div className="px-4 py-2.5 border-b border-white/5 flex items-center gap-2 bg-black/40">
           <Search className="w-3.5 h-3.5 text-zinc-500" />
           <input
             type="text"
@@ -122,14 +123,18 @@ export default function AuditHistoryView() {
           />
         </div>
 
-        <div className="overflow-y-auto flex-1 divide-y divide-zinc-800/60 font-sans text-xs">
+        <div className="overflow-y-auto flex-1 divide-y divide-white/5 font-sans text-xs">
           {historyJobs.map((item) => (
             <div
               key={item.id}
               className="p-3 flex items-center justify-between hover:bg-zinc-700/20 transition-colors"
             >
               <div className="flex items-center gap-3">
-                <FileCheck className="w-4 h-4 text-emerald-400" />
+                <img
+                  src={getFileIcon(item.fileName)}
+                  alt=""
+                  className="w-5 h-6 object-contain flex-shrink-0 drop-shadow-sm select-none pointer-events-none"
+                />
                 <div>
                   <h4 className="font-semibold text-zinc-200">{item.fileName}</h4>
                   <p className="text-[10px] text-zinc-500">
@@ -141,7 +146,7 @@ export default function AuditHistoryView() {
               <div className="flex items-center gap-4">
                 <span className="font-mono text-zinc-300 font-bold">{item.cost}</span>
                 <button
-                  className="flex items-center gap-1 px-2 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-[10px] font-medium text-zinc-300 transition-all active:scale-95"
+                  className="flex items-center gap-1 px-2 py-1 rounded-lg bg-black/40 hover:bg-black/60 border border-white/5 border-t-black/60 shadow-inner text-[10px] font-medium text-zinc-300 transition-all active:scale-95 cursor-pointer"
                   title="Re-queue document"
                 >
                   <RotateCcw className="w-3 h-3 text-sky-400" /> Re-print

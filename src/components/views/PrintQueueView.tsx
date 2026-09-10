@@ -12,6 +12,7 @@ import {
   ArrowUp,
   ArrowDown,
 } from "lucide-react";
+import { getFileIcon } from "../../lib/fileTypeHelper";
 
 export default function PrintQueueView() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -89,9 +90,9 @@ export default function PrintQueueView() {
   return (
     <div className="flex-1 h-full flex flex-col gap-3 p-1 min-h-0 select-none overflow-hidden font-sans">
       {/* Top Header & Bulk Controls */}
-      <div className="flex items-center justify-between bg-zinc-800/30 border border-zinc-700/30 rounded-2xl px-5 py-3 shadow-md flex-shrink-0">
+      <div className="flex items-center justify-between bg-gradient-to-b from-zinc-800/60 to-zinc-900/80 backdrop-blur-xl border border-white/5 border-t-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.4)] rounded-2xl px-5 py-3 flex-shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+          <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-[0_0_15px_rgba(74,222,128,0.2)]">
             <Printer className="w-4 h-4" />
           </div>
           <div>
@@ -106,22 +107,22 @@ export default function PrintQueueView() {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2">
-          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-xs font-semibold text-emerald-300 transition-all active:scale-95 shadow-sm">
+          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-xs font-semibold text-emerald-300 transition-all active:scale-95 shadow-[0_0_15px_rgba(74,222,128,0.2)] cursor-pointer">
             <Play className="w-3.5 h-3.5" /> Start Batch (
             {selectedIds.length > 0 ? selectedIds.length : queue.length})
           </button>
-          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-800/80 hover:bg-zinc-700 border border-zinc-700 text-xs font-medium text-zinc-300 transition-all active:scale-95">
+          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black/40 hover:bg-black/60 border border-white/5 border-t-black/60 shadow-inner text-xs font-medium text-zinc-300 transition-all active:scale-95 cursor-pointer">
             <Pause className="w-3.5 h-3.5" /> Pause Spooler
           </button>
         </div>
       </div>
 
       {/* Flat Data Table */}
-      <div className="flex-1 bg-zinc-800/30 border border-zinc-700/30 rounded-2xl overflow-hidden shadow-xl flex flex-col min-h-0">
+      <div className="flex-1 bg-gradient-to-b from-zinc-800/60 to-zinc-900/80 backdrop-blur-xl border border-white/5 border-t-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.4)] rounded-2xl overflow-hidden flex flex-col min-h-0">
         <div className="overflow-x-auto overflow-y-auto flex-1">
           <table className="w-full text-left text-[11px] border-collapse">
             <thead>
-              <tr className="border-b border-zinc-700/50 bg-zinc-900/50 text-zinc-400 font-semibold sticky top-0 z-10 backdrop-blur-md">
+              <tr className="border-b border-white/5 bg-black/40 text-zinc-400 font-semibold sticky top-0 z-10 backdrop-blur-xl">
                 <th className="py-2.5 px-3 w-10 text-center">
                   <button
                     onClick={toggleSelectAll}
@@ -144,7 +145,7 @@ export default function PrintQueueView() {
                 <th className="py-2.5 px-3 w-20 text-center">Order</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800/60 font-medium">
+            <tbody className="divide-y divide-white/5 font-medium">
               {queue.map((job, idx) => {
                 const isSelected = selectedIds.includes(job.id);
                 return (
@@ -172,7 +173,11 @@ export default function PrintQueueView() {
                       </span>
                     </td>
                     <td className="py-2.5 px-3 font-semibold text-zinc-100 flex items-center gap-2">
-                      <FileText className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
+                      <img
+                        src={getFileIcon(job.fileName)}
+                        alt=""
+                        className="w-4 h-5 object-contain flex-shrink-0 drop-shadow-sm select-none pointer-events-none"
+                      />
                       <span className="truncate max-w-[180px]">
                         {job.fileName}
                       </span>
@@ -186,9 +191,9 @@ export default function PrintQueueView() {
                     </td>
                     <td className="py-2.5 px-3">
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 h-1.5 rounded-full bg-zinc-900 overflow-hidden">
+                        <div className="flex-1 h-1.5 rounded-full bg-black/60 overflow-hidden border border-white/5">
                           <div
-                            className="h-full rounded-full bg-emerald-400"
+                            className="h-full rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(74,222,128,0.4)]"
                             style={{ width: `${job.uploadProgress}%` }}
                           />
                         </div>
@@ -215,7 +220,7 @@ export default function PrintQueueView() {
                         <button
                           onClick={() => movePriority(idx, "up")}
                           disabled={idx === 0}
-                          className="p-1 rounded hover:bg-zinc-700 disabled:opacity-30"
+                          className="p-1 rounded-lg hover:bg-black/40 disabled:opacity-30 transition-colors cursor-pointer"
                           title="Move up"
                         >
                           <ArrowUp className="w-3 h-3 text-zinc-300" />

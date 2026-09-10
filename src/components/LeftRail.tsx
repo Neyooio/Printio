@@ -1,6 +1,6 @@
 import React from "react";
+import gwenIcon from "@/assets/gwen-app-icon.png";
 import {
-  Sparkles,
   HardDrive,
   MonitorSmartphone,
   Printer,
@@ -57,9 +57,13 @@ export default function LeftRail({
 
   return (
     <aside className="w-16 flex flex-col items-center justify-between flex-shrink-0 h-full select-none py-1">
-      {/* Top: Brand icon with active green hotspot indicator dot */}
-      <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-zinc-800/60 border border-zinc-700/40 shadow-inner">
-        <Sparkles className="h-5 w-5 text-zinc-200" />
+      {/* Top: Official Printio Brand Icon with active green hotspot indicator dot */}
+      <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-zinc-950 border border-emerald-500/40 shadow-[0_0_16px_rgba(16,185,129,0.3)]">
+        <img
+          src={gwenIcon}
+          alt="Printio Brand"
+          className="h-9 w-9 rounded-xl object-cover"
+        />
         <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-[#121316] shadow-[0_0_8px_#10b981]" />
       </div>
 

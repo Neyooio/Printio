@@ -16,6 +16,7 @@ export interface SessionInfo {
 export interface UploadInfo {
   id: string;
   file_id: string;
+  name?: string;
   original_name: string;
   safe_name: string;
   file_type: string;
@@ -46,7 +47,7 @@ const isTauri =
   Boolean((window as unknown as { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__);
 
 // In-memory mock state matching the user's dashboard mockup
-let mockSessions: SessionInfo[] = [
+export let mockSessions: SessionInfo[] = [
   {
     id: "sess-iphone",
     ip_address: "192.168.137.45",
@@ -55,8 +56,8 @@ let mockSessions: SessionInfo[] = [
     created_at: new Date(Date.now() - 30 * 60 * 1000).toISOString().replace("Z", ""),
     last_activity: new Date(Date.now() - 3 * 60 * 1000).toISOString().replace("Z", ""),
     status: "active",
-    file_count: 2,
-    completed_count: 2,
+    file_count: 3,
+    completed_count: 3,
   },
   {
     id: "sess-android",
@@ -67,7 +68,7 @@ let mockSessions: SessionInfo[] = [
     created_at: new Date(Date.now() - 15 * 60 * 1000).toISOString().replace("Z", ""),
     last_activity: new Date(Date.now() - 1 * 60 * 1000).toISOString().replace("Z", ""),
     status: "active",
-    file_count: 1,
+    file_count: 2,
     completed_count: 1,
   },
   {
@@ -78,8 +79,8 @@ let mockSessions: SessionInfo[] = [
     created_at: new Date(Date.now() - 10 * 60 * 1000).toISOString().replace("Z", ""),
     last_activity: new Date(Date.now() - 30 * 1000).toISOString().replace("Z", ""),
     status: "active",
-    file_count: 3,
-    completed_count: 3,
+    file_count: 5,
+    completed_count: 5,
   },
   {
     id: "sess-completed-1",
@@ -105,52 +106,82 @@ let mockSessions: SessionInfo[] = [
   },
 ];
 
-let mockFiles: Record<string, UploadInfo[]> = {
+export let mockFiles: Record<string, UploadInfo[]> = {
   "sess-laptop": [
     {
-      id: "f-thesis",
-      file_id: "file-thesis-01",
-      original_name: "Thesis_Draft.pdf",
-      safe_name: "thesis_draft.pdf",
+      id: "f-blueprint-pdf",
+      file_id: "file-blueprint-01",
+      original_name: "Architecture_Blueprint.pdf",
+      safe_name: "architecture_blueprint.pdf",
       file_type: "application/pdf",
-      file_size: 22400000,
-      uploaded_bytes: 22400000,
-      file_path: "C:\\PrintioData\\sessions\\192.168.137.112\\Thesis_Draft.pdf",
+      file_size: 4500000,
+      uploaded_bytes: 4500000,
+      file_path: "C:\\PrintioData\\sessions\\192.168.137.112\\Architecture_Blueprint.pdf",
       fingerprint: "hash-pdf-001",
       status: "complete",
-      pages: 34,
+      pages: 1,
       created_at: new Date(Date.now() - 10 * 60 * 1000).toISOString().replace("Z", ""),
       completed_at: new Date(Date.now() - 9 * 60 * 1000).toISOString().replace("Z", ""),
     },
     {
-      id: "f-costing",
-      file_id: "file-costing-02",
-      original_name: "Research_Data_Sheet.xlsx",
-      safe_name: "research_data_sheet.xlsx",
-      file_type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      file_size: 5800000,
-      uploaded_bytes: 5800000,
-      file_path: "C:\\PrintioData\\sessions\\192.168.137.112\\Research_Data_Sheet.xlsx",
-      fingerprint: "hash-xlsx-002",
+      id: "f-schematic-pdf",
+      file_id: "file-schematic-02",
+      original_name: "Schematic_001.pdf",
+      safe_name: "schematic_001.pdf",
+      file_type: "application/pdf",
+      file_size: 2400000,
+      uploaded_bytes: 2400000,
+      file_path: "C:\\PrintioData\\sessions\\192.168.137.112\\Schematic_001.pdf",
+      fingerprint: "hash-pdf-002",
       status: "complete",
-      pages: 8,
+      pages: 3,
       created_at: new Date(Date.now() - 8 * 60 * 1000).toISOString().replace("Z", ""),
       completed_at: new Date(Date.now() - 7 * 60 * 1000).toISOString().replace("Z", ""),
     },
     {
-      id: "f-references",
-      file_id: "file-references-03",
-      original_name: "Bibliography_Notes.docx",
-      safe_name: "bibliography_notes.docx",
-      file_type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      file_size: 2100000,
-      uploaded_bytes: 2100000,
-      file_path: "C:\\PrintioData\\sessions\\192.168.137.112\\Bibliography_Notes.docx",
-      fingerprint: "hash-docx-003",
+      id: "f-siteplan-pdf",
+      file_id: "file-siteplan-03",
+      original_name: "Site_Plan_Revision.pdf",
+      safe_name: "site_plan_revision.pdf",
+      file_type: "application/pdf",
+      file_size: 15800000,
+      uploaded_bytes: 15800000,
+      file_path: "C:\\PrintioData\\sessions\\192.168.137.112\\Site_Plan_Revision.pdf",
+      fingerprint: "hash-pdf-003",
       status: "complete",
-      pages: 14,
-      created_at: new Date(Date.now() - 5 * 60 * 1000).toISOString().replace("Z", ""),
-      completed_at: new Date(Date.now() - 4 * 60 * 1000).toISOString().replace("Z", ""),
+      pages: 12,
+      created_at: new Date(Date.now() - 6 * 60 * 1000).toISOString().replace("Z", ""),
+      completed_at: new Date(Date.now() - 5 * 60 * 1000).toISOString().replace("Z", ""),
+    },
+    {
+      id: "f-blueprint",
+      file_id: "file-blueprint-04",
+      original_name: "Architecture_Blueprint.png",
+      safe_name: "architecture_blueprint.png",
+      file_type: "image/png",
+      file_size: 4700000,
+      uploaded_bytes: 4700000,
+      file_path: "C:\\PrintioData\\sessions\\192.168.137.112\\Architecture_Blueprint.png",
+      fingerprint: "hash-png-004",
+      status: "complete",
+      pages: 1,
+      created_at: new Date(Date.now() - 3 * 60 * 1000).toISOString().replace("Z", ""),
+      completed_at: new Date(Date.now() - 2 * 60 * 1000).toISOString().replace("Z", ""),
+    },
+    {
+      id: "f-slides",
+      file_id: "file-slides-05",
+      original_name: "Project_Pitch_Deck.pptx",
+      safe_name: "project_pitch_deck.pptx",
+      file_type: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      file_size: 14200000,
+      uploaded_bytes: 14200000,
+      file_path: "C:\\PrintioData\\sessions\\192.168.137.112\\Project_Pitch_Deck.pptx",
+      fingerprint: "hash-pptx-005",
+      status: "complete",
+      pages: 18,
+      created_at: new Date(Date.now() - 2 * 60 * 1000).toISOString().replace("Z", ""),
+      completed_at: new Date(Date.now() - 1 * 60 * 1000).toISOString().replace("Z", ""),
     },
   ],
   "sess-android": [
@@ -168,6 +199,21 @@ let mockFiles: Record<string, UploadInfo[]> = {
       pages: 22,
       created_at: new Date(Date.now() - 14 * 60 * 1000).toISOString().replace("Z", ""),
       completed_at: new Date(Date.now() - 13 * 60 * 1000).toISOString().replace("Z", ""),
+    },
+    {
+      id: "f-android-2",
+      file_id: "file-android-02",
+      original_name: "Budget_Forecast_2026.xlsx",
+      safe_name: "budget_forecast_2026.xlsx",
+      file_type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      file_size: 3400000,
+      uploaded_bytes: 3400000,
+      file_path: "C:\\PrintioData\\sessions\\192.168.137.89\\Budget_Forecast_2026.xlsx",
+      fingerprint: "hash-xlsx-003",
+      status: "transferring",
+      pages: 4,
+      created_at: new Date(Date.now() - 2 * 60 * 1000).toISOString().replace("Z", ""),
+      completed_at: null,
     },
   ],
   "sess-iphone": [
@@ -189,6 +235,21 @@ let mockFiles: Record<string, UploadInfo[]> = {
     {
       id: "f-iphone-2",
       file_id: "file-iphone-02",
+      original_name: "Campus_ID_Badge.jpg",
+      safe_name: "campus_id_badge.jpg",
+      file_type: "image/jpeg",
+      file_size: 3100000,
+      uploaded_bytes: 3100000,
+      file_path: "C:\\PrintioData\\sessions\\192.168.137.45\\Campus_ID_Badge.jpg",
+      fingerprint: "hash-jpg-002",
+      status: "complete",
+      pages: 1,
+      created_at: new Date(Date.now() - 18 * 60 * 1000).toISOString().replace("Z", ""),
+      completed_at: new Date(Date.now() - 17 * 60 * 1000).toISOString().replace("Z", ""),
+    },
+    {
+      id: "f-iphone-3",
+      file_id: "file-iphone-03",
       original_name: "Flyer_DoubleSided.pdf",
       safe_name: "flyer_doublesided.pdf",
       file_type: "application/pdf",
@@ -206,29 +267,66 @@ let mockFiles: Record<string, UploadInfo[]> = {
 
 export const commands = {
   getSessions: async (): Promise<SessionInfo[]> => {
-    if (isTauri) return invoke<SessionInfo[]>("get_sessions");
+    if (isTauri) {
+      try {
+        const live = await invoke<SessionInfo[]>("get_sessions");
+        if (live && live.length > 0) {
+          return live;
+        }
+      } catch (e) {
+        console.warn("get_sessions failed or returned empty, using mock data:", e);
+      }
+    }
     return [...mockSessions];
   },
 
   getSessionFiles: async (sessionId: string): Promise<UploadInfo[]> => {
-    if (isTauri) return invoke<UploadInfo[]>("get_session_files", { sessionId });
+    if (isTauri) {
+      try {
+        const live = await invoke<UploadInfo[]>("get_session_files", { sessionId });
+        if (live && live.length > 0) {
+          return live;
+        }
+      } catch (e) {
+        console.warn("get_session_files failed, checking mockFiles:", e);
+      }
+    }
     return [...(mockFiles[sessionId] || [])];
   },
 
   markJobComplete: async (sessionId: string): Promise<void> => {
-    if (isTauri) return invoke<void>("mark_job_complete", { sessionId });
+    if (isTauri) {
+      try {
+        await invoke<void>("mark_job_complete", { sessionId });
+      } catch (e) {
+        console.warn("mark_job_complete tauri fallback:", e);
+      }
+    }
     mockSessions = mockSessions.map((s) =>
       s.id === sessionId ? { ...s, status: "printed" } : s
     );
   },
 
   deleteSession: async (sessionId: string): Promise<void> => {
-    if (isTauri) return invoke<void>("delete_session", { sessionId });
+    if (isTauri) {
+      try {
+        await invoke<void>("delete_session", { sessionId });
+      } catch (e) {
+        console.warn("delete_session tauri fallback:", e);
+      }
+    }
     mockSessions = mockSessions.filter((s) => s.id !== sessionId);
     delete mockFiles[sessionId];
   },
 
   clearAllCompleted: async (): Promise<void> => {
+    if (isTauri) {
+      try {
+        await invoke<void>("clear_all_completed");
+      } catch (e) {
+        console.warn("clear_all_completed tauri fallback:", e);
+      }
+    }
     mockSessions = mockSessions.filter((s) => s.status === "active");
   },
 

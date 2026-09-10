@@ -51,6 +51,8 @@ pub async fn start_http_server(
         .route("/", get(handle_portal_index))
         .route("/style.css", get(handle_portal_css))
         .route("/upload.js", get(handle_portal_js))
+        .route("/logo.png", get(handle_portal_logo_png))
+        .route("/logo.svg", get(handle_portal_logo_svg))
         // ─── Upload API (pre-built with UploadState) ───
         .merge(upload_routes)
         // ─── Catch-all: redirect unknown paths to portal ───
@@ -138,6 +140,14 @@ async fn handle_portal_css(State(state): State<AppState>) -> impl IntoResponse {
 
 async fn handle_portal_js(State(state): State<AppState>) -> impl IntoResponse {
     serve_portal_file(&state.portal_dir, "upload.js", "application/javascript").await
+}
+
+async fn handle_portal_logo_png(State(state): State<AppState>) -> impl IntoResponse {
+    serve_portal_file(&state.portal_dir, "logo.png", "image/png").await
+}
+
+async fn handle_portal_logo_svg(State(state): State<AppState>) -> impl IntoResponse {
+    serve_portal_file(&state.portal_dir, "logo.svg", "image/svg+xml").await
 }
 
 /// Serve a static file from the portal directory.

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Settings2,
   Wifi,
@@ -19,6 +19,8 @@ import {
   DollarSign,
   FileText,
   Scan,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 
 interface NetworkSettingsViewProps {
@@ -56,6 +58,189 @@ const DEFAULT_PRICING: PricingRates = {
   scanPerPage: 5.0,
   minJobFee: 5.0,
 };
+
+interface RateStepperInputProps {
+  value: number;
+  onChange: (val: number) => void;
+  step?: number;
+  min?: number;
+  max?: number;
+  prefix?: string;
+  className?: string;
+}
+
+function RateStepperInput({
+  value,
+  onChange,
+  step = 1,
+  min = 0,
+  max = 999999,
+  prefix,
+  className = "w-28",
+}: RateStepperInputProps) {
+  const [localVal, setLocalVal] = useState(value.toString());
+  const isFocusedRef = useRef(false);
+  const valRef = useRef(value);
+  valRef.current = value;
+
+  const repeatRef = useRef<{ timer: any; interval: any }>({
+    timer: null,
+    interval: null,
+  });
+
+  useEffect(() => {
+    if (!isFocusedRef.current) {
+      setLocalVal(value.toString());
+    }
+  }, [value]);
+
+  const getDecimals = (n: number) => {
+    const s = n.toString();
+    return s.includes(".") ? s.split(".")[1].length : 0;
+  };
+
+  const stepBy = (dir: 1 | -1, multiplier: number = 1) => {
+    const current = valRef.current;
+    const delta = dir * step * multiplier;
+    const precision = Math.max(getDecimals(step), getDecimals(current), 0);
+    const next = parseFloat((current + delta).toFixed(precision));
+    const clamped = Math.min(max, Math.max(min, next));
+    setLocalVal(clamped.toString());
+    onChange(clamped);
+  };
+
+  const stopRepeat = () => {
+    if (repeatRef.current.timer) clearTimeout(repeatRef.current.timer);
+    if (repeatRef.current.interval) clearInterval(repeatRef.current.interval);
+    repeatRef.current.timer = null;
+    repeatRef.current.interval = null;
+  };
+
+  const startRepeat = (dir: 1 | -1) => {
+    stepBy(dir);
+    stopRepeat();
+    repeatRef.current.timer = setTimeout(() => {
+      repeatRef.current.interval = setInterval(() => {
+        if (dir === -1 && valRef.current <= min) {
+          stopRepeat();
+          return;
+        }
+        if (dir === 1 && valRef.current >= max) {
+          stopRepeat();
+          return;
+        }
+        stepBy(dir);
+      }, 70);
+    }, 320);
+  };
+
+  useEffect(() => {
+    const handleGlobalMouseUp = () => stopRepeat();
+    window.addEventListener("mouseup", handleGlobalMouseUp);
+    return () => {
+      stopRepeat();
+      window.removeEventListener("mouseup", handleGlobalMouseUp);
+    };
+  }, []);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const text = e.target.value;
+    if (/^[0-9]*\.?[0-9]*$/.test(text)) {
+      setLocalVal(text);
+      const parsed = parseFloat(text);
+      if (!isNaN(parsed)) {
+        onChange(Math.min(max, Math.max(min, parsed)));
+      }
+    }
+  };
+
+  const handleFocus = () => {
+    isFocusedRef.current = true;
+  };
+
+  const handleBlur = () => {
+    isFocusedRef.current = false;
+    const parsed = parseFloat(localVal);
+    if (isNaN(parsed) || parsed < min) {
+      setLocalVal(min.toString());
+      onChange(min);
+    } else if (parsed > max) {
+      setLocalVal(max.toString());
+      onChange(max);
+    } else {
+      setLocalVal(parsed.toString());
+      onChange(parsed);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      stepBy(1, e.shiftKey ? 10 : 1);
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      stepBy(-1, e.shiftKey ? 10 : 1);
+    } else if (e.key === "Enter") {
+      (e.target as HTMLInputElement).blur();
+    }
+  };
+
+  return (
+    <div
+      className={`flex items-center h-8 bg-black/50 hover:bg-black/70 border border-white/10 hover:border-white/20 focus-within:border-emerald-500/60 focus-within:ring-1 focus-within:ring-emerald-500/25 rounded-xl shadow-inner transition-all overflow-hidden group shrink-0 ${className}`}
+    >
+      {prefix && (
+        <span className="text-xs text-zinc-400 font-bold select-none pl-2.5 pr-0.5 shrink-0">
+          {prefix}
+        </span>
+      )}
+      <input
+        type="text"
+        inputMode="decimal"
+        value={localVal}
+        onChange={handleInputChange}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
+        className="bg-transparent text-xs text-zinc-100 font-mono font-bold focus:outline-none w-full text-right pr-2 min-w-0 select-text"
+      />
+      <div className="flex flex-col h-full w-[24px] border-l border-white/10 bg-white/[0.03] group-hover:bg-white/[0.06] shrink-0 select-none">
+        <button
+          type="button"
+          tabIndex={-1}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            startRepeat(1);
+          }}
+          onMouseUp={stopRepeat}
+          onMouseLeave={stopRepeat}
+          disabled={value >= max}
+          className="flex-1 flex items-center justify-center text-zinc-400 hover:text-emerald-400 hover:bg-emerald-500/20 active:bg-emerald-500/35 disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-zinc-500 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          title={`Increase by ${step}`}
+        >
+          <ChevronUp className="w-3.5 h-3.5 stroke-[2.5]" />
+        </button>
+        <div className="h-[1px] bg-white/10 w-full" />
+        <button
+          type="button"
+          tabIndex={-1}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            startRepeat(-1);
+          }}
+          onMouseUp={stopRepeat}
+          onMouseLeave={stopRepeat}
+          disabled={value <= min}
+          className="flex-1 flex items-center justify-center text-zinc-400 hover:text-emerald-400 hover:bg-emerald-500/20 active:bg-emerald-500/35 disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-zinc-500 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          title={`Decrease by ${step}`}
+        >
+          <ChevronDown className="w-3.5 h-3.5 stroke-[2.5]" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 
 type SettingsTab = "pricing" | "network" | "storage";
 
@@ -150,9 +335,9 @@ export default function NetworkSettingsView({
   return (
     <div className="flex-1 h-full flex flex-col gap-3 p-1 min-h-0 select-none overflow-hidden font-sans text-zinc-200">
       {/* Top Header Bar with Categorized Tab Switcher */}
-      <div className="flex items-center justify-between bg-zinc-800/40 border border-zinc-700/40 rounded-2xl px-5 py-2.5 shadow-md flex-shrink-0">
+      <div className="flex items-center justify-between bg-gradient-to-b from-zinc-800/60 to-zinc-900/80 backdrop-blur-xl border border-white/5 border-t-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.4)] rounded-2xl px-5 py-2.5 flex-shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+          <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-[0_0_15px_rgba(74,222,128,0.2)]">
             <Settings2 className="w-4 h-4" />
           </div>
           <div>
@@ -164,7 +349,7 @@ export default function NetworkSettingsView({
         </div>
 
         {/* Organized Navigation Pills */}
-        <div className="flex items-center gap-1.5 bg-zinc-900/60 p-1 rounded-xl border border-zinc-700/50">
+        <div className="flex items-center gap-1.5 bg-black/40 p-1 rounded-xl border border-white/5 border-t-black/60 shadow-inner">
           <button
             onClick={() => setActiveSubTab("pricing")}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
@@ -209,9 +394,9 @@ export default function NetworkSettingsView({
           {/* Top Row: Printing Rates & Lamination / Finishing */}
           <div className="grid grid-cols-3 gap-3">
             {/* Panel A: Printing Rates */}
-            <div className="bg-[#1a1c21] border border-zinc-800/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between">
+            <div className="bg-gradient-to-b from-zinc-800/60 to-zinc-900/80 backdrop-blur-xl border border-white/5 border-t-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.4)] rounded-2xl p-4 flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between mb-3 border-b border-zinc-800 pb-2">
+                <div className="flex items-center justify-between mb-3 border-b border-white/5 pb-2">
                   <div className="flex items-center gap-2">
                     <Printer className="w-4 h-4 text-emerald-400" />
                     <h3 className="text-xs font-bold text-zinc-200">Printing Rates</h3>
@@ -221,88 +406,72 @@ export default function NetworkSettingsView({
 
                 <div className="space-y-2.5">
                   {/* B&W */}
-                  <div className="flex items-center justify-between bg-zinc-900/50 p-2 rounded-xl border border-zinc-800/60">
+                  <div className="flex items-center justify-between bg-black/40 p-2 rounded-xl border border-white/5 border-t-black/60 shadow-inner">
                     <div>
                       <p className="text-xs font-medium text-zinc-200">Black & White (B&W)</p>
                       <p className="text-[10px] text-zinc-500">Standard text documents</p>
                     </div>
-                    <div className="flex items-center gap-1 bg-zinc-800/80 px-2 py-1 rounded-lg border border-zinc-700/40 w-24">
-                      <span className="text-xs text-zinc-400 font-bold">{pricing.currency}</span>
-                      <input
-                        type="number"
-                        step="0.25"
-                        min="0"
-                        value={pricing.bwPerPage}
-                        onChange={(e) => updateRate("bwPerPage", parseFloat(e.target.value) || 0)}
-                        className="bg-transparent text-xs text-zinc-100 font-mono font-bold focus:outline-none w-full text-right"
-                      />
-                    </div>
+                    <RateStepperInput
+                      value={pricing.bwPerPage}
+                      onChange={(val) => updateRate("bwPerPage", val)}
+                      step={0.25}
+                      min={0}
+                      prefix={pricing.currency}
+                    />
                   </div>
 
                   {/* Color Text */}
-                  <div className="flex items-center justify-between bg-zinc-900/50 p-2 rounded-xl border border-zinc-800/60">
+                  <div className="flex items-center justify-between bg-black/40 p-2 rounded-xl border border-white/5 border-t-black/60 shadow-inner">
                     <div>
                       <p className="text-xs font-medium text-zinc-200">Color (Standard / Text)</p>
                       <p className="text-[10px] text-zinc-500">Charts, colored titles</p>
                     </div>
-                    <div className="flex items-center gap-1 bg-zinc-800/80 px-2 py-1 rounded-lg border border-zinc-700/40 w-24">
-                      <span className="text-xs text-zinc-400 font-bold">{pricing.currency}</span>
-                      <input
-                        type="number"
-                        step="0.5"
-                        min="0"
-                        value={pricing.colorPerPage}
-                        onChange={(e) => updateRate("colorPerPage", parseFloat(e.target.value) || 0)}
-                        className="bg-transparent text-xs text-zinc-100 font-mono font-bold focus:outline-none w-full text-right"
-                      />
-                    </div>
+                    <RateStepperInput
+                      value={pricing.colorPerPage}
+                      onChange={(val) => updateRate("colorPerPage", val)}
+                      step={0.5}
+                      min={0}
+                      prefix={pricing.currency}
+                    />
                   </div>
 
                   {/* Full Color / Photo */}
-                  <div className="flex items-center justify-between bg-zinc-900/50 p-2 rounded-xl border border-zinc-800/60">
+                  <div className="flex items-center justify-between bg-black/40 p-2 rounded-xl border border-white/5 border-t-black/60 shadow-inner">
                     <div>
                       <p className="text-xs font-medium text-zinc-200">Full Color / Photo</p>
                       <p className="text-[10px] text-zinc-500">Heavy ink & photo paper</p>
                     </div>
-                    <div className="flex items-center gap-1 bg-zinc-800/80 px-2 py-1 rounded-lg border border-zinc-700/40 w-24">
-                      <span className="text-xs text-zinc-400 font-bold">{pricing.currency}</span>
-                      <input
-                        type="number"
-                        step="1"
-                        min="0"
-                        value={pricing.colorFullPhoto}
-                        onChange={(e) => updateRate("colorFullPhoto", parseFloat(e.target.value) || 0)}
-                        className="bg-transparent text-xs text-zinc-100 font-mono font-bold focus:outline-none w-full text-right"
-                      />
-                    </div>
+                    <RateStepperInput
+                      value={pricing.colorFullPhoto}
+                      onChange={(val) => updateRate("colorFullPhoto", val)}
+                      step={1}
+                      min={0}
+                      prefix={pricing.currency}
+                    />
                   </div>
 
                   {/* Legal Paper Surcharge */}
-                  <div className="flex items-center justify-between bg-zinc-900/50 p-2 rounded-xl border border-zinc-800/60">
+                  <div className="flex items-center justify-between bg-black/40 p-2 rounded-xl border border-white/5 border-t-black/60 shadow-inner">
                     <div>
                       <p className="text-xs font-medium text-zinc-200">Legal / Long Surcharge</p>
                       <p className="text-[10px] text-zinc-500">Additional charge per long sheet</p>
                     </div>
-                    <div className="flex items-center gap-1 bg-zinc-800/80 px-2 py-1 rounded-lg border border-zinc-700/40 w-24">
-                      <span className="text-xs text-zinc-400 font-bold">+{pricing.currency}</span>
-                      <input
-                        type="number"
-                        step="0.5"
-                        min="0"
-                        value={pricing.legalSurcharge}
-                        onChange={(e) => updateRate("legalSurcharge", parseFloat(e.target.value) || 0)}
-                        className="bg-transparent text-xs text-zinc-100 font-mono font-bold focus:outline-none w-full text-right"
-                      />
-                    </div>
+                    <RateStepperInput
+                      value={pricing.legalSurcharge}
+                      onChange={(val) => updateRate("legalSurcharge", val)}
+                      step={0.5}
+                      min={0}
+                      prefix={`+${pricing.currency}`}
+                    />
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Panel B: Lamination & Finishing */}
-            <div className="bg-[#1a1c21] border border-zinc-800/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between">
+            <div className="bg-gradient-to-b from-zinc-800/60 to-zinc-900/80 backdrop-blur-xl border border-white/5 border-t-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.4)] rounded-2xl p-4 flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between mb-3 border-b border-zinc-800 pb-2">
+                <div className="flex items-center justify-between mb-3 border-b border-white/5 pb-2">
                   <div className="flex items-center gap-2">
                     <Layers className="w-4 h-4 text-blue-400" />
                     <h3 className="text-xs font-bold text-zinc-200">Laminations & Scanning</h3>
@@ -312,88 +481,72 @@ export default function NetworkSettingsView({
 
                 <div className="space-y-2.5">
                   {/* ID Size Lamination */}
-                  <div className="flex items-center justify-between bg-zinc-900/50 p-2 rounded-xl border border-zinc-800/60">
+                  <div className="flex items-center justify-between bg-black/40 p-2 rounded-xl border border-white/5 border-t-black/60 shadow-inner">
                     <div>
                       <p className="text-xs font-medium text-zinc-200">ID / Badge Lamination</p>
                       <p className="text-[10px] text-zinc-500">Pocket / Wallet card size</p>
                     </div>
-                    <div className="flex items-center gap-1 bg-zinc-800/80 px-2 py-1 rounded-lg border border-zinc-700/40 w-24">
-                      <span className="text-xs text-zinc-400 font-bold">{pricing.currency}</span>
-                      <input
-                        type="number"
-                        step="1"
-                        min="0"
-                        value={pricing.laminationId}
-                        onChange={(e) => updateRate("laminationId", parseFloat(e.target.value) || 0)}
-                        className="bg-transparent text-xs text-zinc-100 font-mono font-bold focus:outline-none w-full text-right"
-                      />
-                    </div>
+                    <RateStepperInput
+                      value={pricing.laminationId}
+                      onChange={(val) => updateRate("laminationId", val)}
+                      step={1}
+                      min={0}
+                      prefix={pricing.currency}
+                    />
                   </div>
 
                   {/* Short / A4 Lamination */}
-                  <div className="flex items-center justify-between bg-zinc-900/50 p-2 rounded-xl border border-zinc-800/60">
+                  <div className="flex items-center justify-between bg-black/40 p-2 rounded-xl border border-white/5 border-t-black/60 shadow-inner">
                     <div>
                       <p className="text-xs font-medium text-zinc-200">A4 / Short Lamination</p>
                       <p className="text-[10px] text-zinc-500">Letter & standard certificate</p>
                     </div>
-                    <div className="flex items-center gap-1 bg-zinc-800/80 px-2 py-1 rounded-lg border border-zinc-700/40 w-24">
-                      <span className="text-xs text-zinc-400 font-bold">{pricing.currency}</span>
-                      <input
-                        type="number"
-                        step="1"
-                        min="0"
-                        value={pricing.laminationA4}
-                        onChange={(e) => updateRate("laminationA4", parseFloat(e.target.value) || 0)}
-                        className="bg-transparent text-xs text-zinc-100 font-mono font-bold focus:outline-none w-full text-right"
-                      />
-                    </div>
+                    <RateStepperInput
+                      value={pricing.laminationA4}
+                      onChange={(val) => updateRate("laminationA4", val)}
+                      step={1}
+                      min={0}
+                      prefix={pricing.currency}
+                    />
                   </div>
 
                   {/* Long / Legal Lamination */}
-                  <div className="flex items-center justify-between bg-zinc-900/50 p-2 rounded-xl border border-zinc-800/60">
+                  <div className="flex items-center justify-between bg-black/40 p-2 rounded-xl border border-white/5 border-t-black/60 shadow-inner">
                     <div>
                       <p className="text-xs font-medium text-zinc-200">Legal / Long Lamination</p>
                       <p className="text-[10px] text-zinc-500">Diploma & legal contracts</p>
                     </div>
-                    <div className="flex items-center gap-1 bg-zinc-800/80 px-2 py-1 rounded-lg border border-zinc-700/40 w-24">
-                      <span className="text-xs text-zinc-400 font-bold">{pricing.currency}</span>
-                      <input
-                        type="number"
-                        step="1"
-                        min="0"
-                        value={pricing.laminationLegal}
-                        onChange={(e) => updateRate("laminationLegal", parseFloat(e.target.value) || 0)}
-                        className="bg-transparent text-xs text-zinc-100 font-mono font-bold focus:outline-none w-full text-right"
-                      />
-                    </div>
+                    <RateStepperInput
+                      value={pricing.laminationLegal}
+                      onChange={(val) => updateRate("laminationLegal", val)}
+                      step={1}
+                      min={0}
+                      prefix={pricing.currency}
+                    />
                   </div>
 
                   {/* Scanning Rate */}
-                  <div className="flex items-center justify-between bg-zinc-900/50 p-2 rounded-xl border border-zinc-800/60">
+                  <div className="flex items-center justify-between bg-black/40 p-2 rounded-xl border border-white/5 border-t-black/60 shadow-inner">
                     <div>
                       <p className="text-xs font-medium text-zinc-200">Document Scanning</p>
                       <p className="text-[10px] text-zinc-500">Flatbed scan to digital PDF</p>
                     </div>
-                    <div className="flex items-center gap-1 bg-zinc-800/80 px-2 py-1 rounded-lg border border-zinc-700/40 w-24">
-                      <span className="text-xs text-zinc-400 font-bold">{pricing.currency}</span>
-                      <input
-                        type="number"
-                        step="1"
-                        min="0"
-                        value={pricing.scanPerPage}
-                        onChange={(e) => updateRate("scanPerPage", parseFloat(e.target.value) || 0)}
-                        className="bg-transparent text-xs text-zinc-100 font-mono font-bold focus:outline-none w-full text-right"
-                      />
-                    </div>
+                    <RateStepperInput
+                      value={pricing.scanPerPage}
+                      onChange={(val) => updateRate("scanPerPage", val)}
+                      step={1}
+                      min={0}
+                      prefix={pricing.currency}
+                    />
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Panel C: Binding & Shop Settings */}
-            <div className="bg-[#1a1c21] border border-zinc-800/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between">
+            <div className="bg-gradient-to-b from-zinc-800/60 to-zinc-900/80 backdrop-blur-xl border border-white/5 border-t-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.4)] rounded-2xl p-4 flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between mb-3 border-b border-zinc-800 pb-2">
+                <div className="flex items-center justify-between mb-3 border-b border-white/5 pb-2">
                   <div className="flex items-center gap-2">
                     <BookOpen className="w-4 h-4 text-amber-400" />
                     <h3 className="text-xs font-bold text-zinc-200">Binding & Currency</h3>
@@ -403,64 +556,52 @@ export default function NetworkSettingsView({
 
                 <div className="space-y-2.5">
                   {/* Ring / Coil Binding */}
-                  <div className="flex items-center justify-between bg-zinc-900/50 p-2 rounded-xl border border-zinc-800/60">
+                  <div className="flex items-center justify-between bg-black/40 p-2 rounded-xl border border-white/5 border-t-black/60 shadow-inner">
                     <div>
                       <p className="text-xs font-medium text-zinc-200">Ring / Coil Binding</p>
                       <p className="text-[10px] text-zinc-500">Spiral with PVC cover</p>
                     </div>
-                    <div className="flex items-center gap-1 bg-zinc-800/80 px-2 py-1 rounded-lg border border-zinc-700/40 w-24">
-                      <span className="text-xs text-zinc-400 font-bold">{pricing.currency}</span>
-                      <input
-                        type="number"
-                        step="5"
-                        min="0"
-                        value={pricing.ringBinding}
-                        onChange={(e) => updateRate("ringBinding", parseFloat(e.target.value) || 0)}
-                        className="bg-transparent text-xs text-zinc-100 font-mono font-bold focus:outline-none w-full text-right"
-                      />
-                    </div>
+                    <RateStepperInput
+                      value={pricing.ringBinding}
+                      onChange={(val) => updateRate("ringBinding", val)}
+                      step={5}
+                      min={0}
+                      prefix={pricing.currency}
+                    />
                   </div>
 
                   {/* Hardbound / Thesis Binding */}
-                  <div className="flex items-center justify-between bg-zinc-900/50 p-2 rounded-xl border border-zinc-800/60">
+                  <div className="flex items-center justify-between bg-black/40 p-2 rounded-xl border border-white/5 border-t-black/60 shadow-inner">
                     <div>
                       <p className="text-xs font-medium text-zinc-200">Thesis Hardbound</p>
                       <p className="text-[10px] text-zinc-500">Gold stamping & leatherette</p>
                     </div>
-                    <div className="flex items-center gap-1 bg-zinc-800/80 px-2 py-1 rounded-lg border border-zinc-700/40 w-24">
-                      <span className="text-xs text-zinc-400 font-bold">{pricing.currency}</span>
-                      <input
-                        type="number"
-                        step="10"
-                        min="0"
-                        value={pricing.hardboundBinding}
-                        onChange={(e) => updateRate("hardboundBinding", parseFloat(e.target.value) || 0)}
-                        className="bg-transparent text-xs text-zinc-100 font-mono font-bold focus:outline-none w-full text-right"
-                      />
-                    </div>
+                    <RateStepperInput
+                      value={pricing.hardboundBinding}
+                      onChange={(val) => updateRate("hardboundBinding", val)}
+                      step={10}
+                      min={0}
+                      prefix={pricing.currency}
+                    />
                   </div>
 
                   {/* Minimum Session Fee */}
-                  <div className="flex items-center justify-between bg-zinc-900/50 p-2 rounded-xl border border-zinc-800/60">
+                  <div className="flex items-center justify-between bg-black/40 p-2 rounded-xl border border-white/5 border-t-black/60 shadow-inner">
                     <div>
                       <p className="text-xs font-medium text-zinc-200">Min. Session Fee</p>
                       <p className="text-[10px] text-zinc-500">Minimum job base charge</p>
                     </div>
-                    <div className="flex items-center gap-1 bg-zinc-800/80 px-2 py-1 rounded-lg border border-zinc-700/40 w-24">
-                      <span className="text-xs text-zinc-400 font-bold">{pricing.currency}</span>
-                      <input
-                        type="number"
-                        step="1"
-                        min="0"
-                        value={pricing.minJobFee}
-                        onChange={(e) => updateRate("minJobFee", parseFloat(e.target.value) || 0)}
-                        className="bg-transparent text-xs text-zinc-100 font-mono font-bold focus:outline-none w-full text-right"
-                      />
-                    </div>
+                    <RateStepperInput
+                      value={pricing.minJobFee}
+                      onChange={(val) => updateRate("minJobFee", val)}
+                      step={1}
+                      min={0}
+                      prefix={pricing.currency}
+                    />
                   </div>
 
                   {/* Currency Selector */}
-                  <div className="flex items-center justify-between bg-zinc-900/50 p-2 rounded-xl border border-zinc-800/60">
+                  <div className="flex items-center justify-between bg-black/40 p-2 rounded-xl border border-white/5 border-t-black/60 shadow-inner">
                     <div>
                       <p className="text-xs font-medium text-zinc-200">Shop Currency Symbol</p>
                       <p className="text-[10px] text-zinc-500">Displayed on bill & receipts</p>
@@ -489,8 +630,8 @@ export default function NetworkSettingsView({
           {/* Bottom Row: Live Price Estimator + Save / Reset Controls */}
           <div className="grid grid-cols-[1fr_300px] gap-3">
             {/* Live Job Price Calculator */}
-            <div className="bg-[#1a1c21] border border-zinc-800/80 rounded-2xl p-4 shadow-xl">
-              <div className="flex items-center justify-between mb-3 border-b border-zinc-800 pb-2">
+            <div className="bg-gradient-to-b from-zinc-800/60 to-zinc-900/80 backdrop-blur-xl border border-white/5 border-t-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.4)] rounded-2xl p-4">
+              <div className="flex items-center justify-between mb-3 border-b border-white/5 pb-2">
                 <div className="flex items-center gap-2">
                   <Calculator className="w-4 h-4 text-purple-400" />
                   <h3 className="text-xs font-bold text-zinc-200">Live Price Estimator</h3>
@@ -507,12 +648,12 @@ export default function NetworkSettingsView({
                   <label className="text-[10px] font-medium text-zinc-400 block mb-1">
                     Page Count
                   </label>
-                  <input
-                    type="number"
-                    min="1"
+                  <RateStepperInput
                     value={calcPages}
-                    onChange={(e) => setCalcPages(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-full bg-zinc-900/60 border border-zinc-700/60 rounded-xl px-3 py-1.5 text-xs text-zinc-100 font-mono font-bold focus:outline-none"
+                    onChange={(val) => setCalcPages(Math.max(1, Math.round(val)))}
+                    step={1}
+                    min={1}
+                    className="w-full"
                   />
                 </div>
 
@@ -524,7 +665,7 @@ export default function NetworkSettingsView({
                   <select
                     value={calcPrintType}
                     onChange={(e: any) => setCalcPrintType(e.target.value)}
-                    className="w-full bg-zinc-900/60 border border-zinc-700/60 rounded-xl px-2 py-1.5 text-xs text-zinc-100 focus:outline-none"
+                    className="w-full bg-black/40 border border-white/5 border-t-black/60 shadow-inner rounded-xl px-2 py-1.5 text-xs text-zinc-100 focus:outline-none"
                   >
                     <option value="bw">B&W ({pricing.currency}{pricing.bwPerPage})</option>
                     <option value="color">Color Text ({pricing.currency}{pricing.colorPerPage})</option>
@@ -540,7 +681,7 @@ export default function NetworkSettingsView({
                   <select
                     value={calcLamination}
                     onChange={(e: any) => setCalcLamination(e.target.value)}
-                    className="w-full bg-zinc-900/60 border border-zinc-700/60 rounded-xl px-2 py-1.5 text-xs text-zinc-100 focus:outline-none"
+                    className="w-full bg-black/40 border border-white/5 border-t-black/60 shadow-inner rounded-xl px-2 py-1.5 text-xs text-zinc-100 focus:outline-none"
                   >
                     <option value="none">None</option>
                     <option value="id">ID Size (+{pricing.currency}{pricing.laminationId})</option>
@@ -557,7 +698,7 @@ export default function NetworkSettingsView({
                   <select
                     value={calcBinding}
                     onChange={(e: any) => setCalcBinding(e.target.value)}
-                    className="w-full bg-zinc-900/60 border border-zinc-700/60 rounded-xl px-2 py-1.5 text-xs text-zinc-100 focus:outline-none"
+                    className="w-full bg-black/40 border border-white/5 border-t-black/60 shadow-inner rounded-xl px-2 py-1.5 text-xs text-zinc-100 focus:outline-none"
                   >
                     <option value="none">None</option>
                     <option value="ring">Coil/Ring (+{pricing.currency}{pricing.ringBinding})</option>
@@ -567,7 +708,7 @@ export default function NetworkSettingsView({
               </div>
 
               {/* Calculation Summary Row */}
-              <div className="mt-3 pt-2.5 border-t border-zinc-800/80 flex items-center justify-between text-xs">
+              <div className="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between text-xs">
                 <div className="flex items-center gap-3 text-zinc-400 text-[11px]">
                   <span>Paper: <strong className="text-zinc-200">{calcIsLegal ? "Legal" : "Short/A4"}</strong></span>
                   <span>•</span>
@@ -583,7 +724,7 @@ export default function NetworkSettingsView({
             </div>
 
             {/* Save & Reset Panel */}
-            <div className="bg-[#1a1c21] border border-zinc-800/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between">
+            <div className="bg-gradient-to-b from-zinc-800/60 to-zinc-900/80 backdrop-blur-xl border border-white/5 border-t-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.4)] rounded-2xl p-4 flex flex-col justify-between">
               <div>
                 <h4 className="text-xs font-bold text-zinc-200 mb-1">Save Shop Rates</h4>
                 <p className="text-[10px] text-zinc-400 mb-3">
@@ -611,7 +752,7 @@ export default function NetworkSettingsView({
 
                 <button
                   onClick={handleResetPricing}
-                  className="w-full py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-medium text-xs flex items-center justify-center gap-1.5 transition-all active:scale-98 cursor-pointer border border-zinc-700/50"
+                  className="w-full py-1.5 rounded-xl bg-black/40 hover:bg-black/60 border border-white/5 border-t-black/60 shadow-inner text-zinc-300 font-medium text-xs flex items-center justify-center gap-1.5 transition-all active:scale-98 cursor-pointer"
                 >
                   <RotateCcw className="w-3 h-3 text-zinc-400" />
                   Reset to Defaults
@@ -628,9 +769,9 @@ export default function NetworkSettingsView({
       {activeSubTab === "network" && (
         <div className="flex-1 grid grid-cols-2 gap-3 min-h-0 overflow-y-auto">
           {/* Hotspot & Radio */}
-          <div className="bg-[#1a1c21] border border-zinc-800/80 rounded-2xl p-4 flex flex-col justify-between shadow-xl">
+          <div className="bg-gradient-to-b from-zinc-800/60 to-zinc-900/80 backdrop-blur-xl border border-white/5 border-t-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.4)] rounded-2xl p-4 flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between mb-3 border-b border-zinc-800 pb-2">
+              <div className="flex items-center justify-between mb-3 border-b border-white/5 pb-2">
                 <div className="flex items-center gap-2">
                   <Wifi className="w-4 h-4 text-emerald-400" />
                   <h3 className="text-xs font-bold text-zinc-200">Wi-Fi Hotspot Configuration</h3>
@@ -645,7 +786,7 @@ export default function NetworkSettingsView({
                   <label className="text-[10px] font-semibold text-zinc-400 block mb-1">
                     Hotspot Network Name (SSID)
                   </label>
-                  <div className="flex items-center gap-2 bg-zinc-900/60 border border-zinc-700/60 rounded-xl px-3 py-1.5">
+                  <div className="flex items-center gap-2 bg-black/40 border border-white/5 border-t-black/60 shadow-inner rounded-xl px-3 py-1.5">
                     <Radio className="w-3.5 h-3.5 text-zinc-500" />
                     <input
                       type="text"
@@ -660,7 +801,7 @@ export default function NetworkSettingsView({
                   <label className="text-[10px] font-semibold text-zinc-400 block mb-1">
                     Frequency Band
                   </label>
-                  <div className="grid grid-cols-2 gap-2 bg-zinc-900/40 p-1 rounded-xl border border-zinc-800">
+                  <div className="grid grid-cols-2 gap-2 bg-black/30 p-1 rounded-xl border border-white/5 border-t-black/60 shadow-inner">
                     <button
                       onClick={() => setBand("2.4GHz")}
                       className={`py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
@@ -684,7 +825,7 @@ export default function NetworkSettingsView({
                   </div>
                 </div>
 
-                <div className="bg-zinc-900/40 rounded-xl p-3 border border-zinc-800/60 text-[11px] space-y-1 text-zinc-400">
+                <div className="bg-black/40 rounded-xl p-2.5 border border-white/5 border-t-black/60 shadow-inner text-[11px] space-y-1 text-zinc-400">
                   <div className="flex justify-between">
                     <span>Gateway IP</span>
                     <span className="font-mono text-zinc-200">192.168.137.1</span>
@@ -701,10 +842,10 @@ export default function NetworkSettingsView({
               </div>
             </div>
 
-            <div className="pt-3 border-t border-zinc-700/30">
+            <div className="pt-3 border-t border-white/5">
               <button
                 onClick={onToggleServer}
-                className="w-full py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-xs font-semibold text-zinc-200 transition-all active:scale-98 cursor-pointer"
+                className="w-full py-1.5 rounded-xl bg-black/40 hover:bg-black/60 border border-white/5 border-t-black/60 shadow-inner text-xs font-semibold text-zinc-200 transition-all active:scale-98 cursor-pointer"
               >
                 Restart Network Adapter
               </button>
@@ -712,9 +853,9 @@ export default function NetworkSettingsView({
           </div>
 
           {/* DNS & HTTP Port Routing Rules */}
-          <div className="bg-[#1a1c21] border border-zinc-800/80 rounded-2xl p-4 flex flex-col justify-between shadow-xl">
+          <div className="bg-gradient-to-b from-zinc-800/60 to-zinc-900/80 backdrop-blur-xl border border-white/5 border-t-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.4)] rounded-2xl p-4 flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between mb-3 border-b border-zinc-800 pb-2">
+              <div className="flex items-center justify-between mb-3 border-b border-white/5 pb-2">
                 <div className="flex items-center gap-2">
                   <Network className="w-4 h-4 text-sky-400" />
                   <h3 className="text-xs font-bold text-zinc-200">Routing & Port Interception</h3>
@@ -726,7 +867,7 @@ export default function NetworkSettingsView({
 
               <div className="space-y-2.5">
                 {/* DNS Port 53 */}
-                <div className="bg-zinc-900/40 rounded-xl p-2.5 border border-zinc-800/60 flex items-center justify-between">
+                <div className="bg-black/40 rounded-xl p-2.5 border border-white/5 border-t-black/60 shadow-inner flex items-center justify-between">
                   <div>
                     <h4 className="text-xs font-bold text-zinc-200">DNS Hijacking (Port 53)</h4>
                     <p className="text-[10px] text-zinc-400">Routes domain requests to captive drop box</p>
@@ -746,7 +887,7 @@ export default function NetworkSettingsView({
                 </div>
 
                 {/* HTTP Port 80 */}
-                <div className="bg-zinc-900/40 rounded-xl p-2.5 border border-zinc-800/60 flex items-center justify-between">
+                <div className="bg-black/40 rounded-xl p-2.5 border border-white/5 border-t-black/60 shadow-inner flex items-center justify-between">
                   <div>
                     <h4 className="text-xs font-bold text-zinc-200">HTTP 302 Redirection (Port 80)</h4>
                     <p className="text-[10px] text-zinc-400">Prompts immediate OS login popup on phones</p>
@@ -766,7 +907,7 @@ export default function NetworkSettingsView({
                 </div>
 
                 {/* Windows Firewall Status */}
-                <div className="bg-zinc-900/40 rounded-xl p-2.5 border border-zinc-800/60 flex items-center justify-between">
+                <div className="bg-black/40 rounded-xl p-2.5 border border-white/5 border-t-black/60 shadow-inner flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="w-4 h-4 text-emerald-400" />
                     <div>
@@ -779,7 +920,7 @@ export default function NetworkSettingsView({
               </div>
             </div>
 
-            <div className="pt-3 border-t border-zinc-700/30 flex justify-between items-center text-[10px] text-zinc-500 font-mono">
+            <div className="pt-3 border-t border-white/5 flex justify-between items-center text-[10px] text-zinc-500 font-mono">
               <span>Status: Elevated Admin</span>
               <span>Adapter: OK</span>
             </div>
@@ -791,7 +932,7 @@ export default function NetworkSettingsView({
       {/* 3. STORAGE & SECURITY TAB                                */}
       {/* ========================================================= */}
       {activeSubTab === "storage" && (
-        <div className="flex-1 bg-[#1a1c21] border border-zinc-800/80 rounded-2xl p-5 shadow-xl flex flex-col justify-between overflow-y-auto">
+        <div className="flex-1 bg-gradient-to-b from-zinc-800/60 to-zinc-900/80 backdrop-blur-xl border border-white/5 border-t-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.4)] rounded-2xl p-5 flex flex-col justify-between overflow-y-auto">
           <div className="grid grid-cols-2 gap-6">
             {/* Storage Quota */}
             <div>
@@ -856,7 +997,7 @@ export default function NetworkSettingsView({
                 ))}
               </div>
 
-              <div className="flex items-center justify-between bg-zinc-900/40 p-2.5 rounded-xl border border-zinc-800/60">
+              <div className="flex items-center justify-between bg-black/40 p-2.5 rounded-xl border border-white/5 border-t-black/60 shadow-inner">
                 <span className="text-xs text-zinc-300 font-medium">
                   Immediate purge upon client disconnect / Wi-Fi lease expiry
                 </span>
@@ -870,7 +1011,7 @@ export default function NetworkSettingsView({
             </div>
           </div>
 
-          <div className="pt-4 border-t border-zinc-800/80 flex items-center justify-between text-xs text-zinc-400">
+          <div className="pt-4 border-t border-white/5 flex items-center justify-between text-xs text-zinc-400">
             <span>Storage policy: Automatic LRU eviction when disk cap is reached</span>
             <span className="font-mono text-zinc-500">Purge cron: active</span>
           </div>

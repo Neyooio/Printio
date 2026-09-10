@@ -1,4 +1,5 @@
 import React from "react";
+import gwenIcon from "@/assets/gwen-app-icon.png";
 
 interface TitleBarProps {
   title?: string;
@@ -57,8 +58,12 @@ export default function TitleBar({
       data-tauri-drag-region
       className="flex h-9 w-full items-center justify-between border-b border-zinc-800/50 bg-[#16171b] px-4 text-xs text-zinc-400 select-none flex-shrink-0"
     >
-      <div className="flex items-center gap-2 pointer-events-none">
-        <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981]" />
+      <div className="flex items-center gap-2.5 pointer-events-none">
+        <img
+          src={gwenIcon}
+          alt="Printio Logo"
+          className="h-4.5 w-4.5 rounded-[5px] object-cover shadow-[0_0_8px_rgba(16,185,129,0.4)]"
+        />
         <span className="font-medium text-zinc-300">{title}</span>
       </div>
       <div className="flex items-center gap-3 text-zinc-500">

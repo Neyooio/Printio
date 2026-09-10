@@ -48,6 +48,7 @@ import PrintQueueView from "./components/views/PrintQueueView";
 import AuditHistoryView from "./components/views/AuditHistoryView";
 import NetworkSettingsView from "./components/views/NetworkSettingsView";
 import AiCopilotDrawer from "./components/ai/AiCopilotDrawer";
+import ClientBillingReceipt from "./components/ClientBillingReceipt";
 
 import { getFileIcon } from "./lib/fileTypeHelper";
 export { getFileIcon };
@@ -937,27 +938,11 @@ export default function PrintioDashboard() {
                 </div>
               </div>
 
-              {/* Completed Print Jobs with Visual Paper Stack */}
-              <div className="flex-1 flex flex-col justify-between rounded-[28px] bg-gradient-to-b from-zinc-800/60 to-zinc-900/80 backdrop-blur-xl border border-white/5 border-t-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.4)] p-4">
-                <span className="text-xs font-semibold tracking-wide text-zinc-300">
-                  Completed Print Jobs
-                </span>
-
-                <div className="relative mx-auto my-auto flex h-24 w-36 items-center justify-center">
-                  <div className="absolute h-16 w-24 rounded-xl bg-gradient-to-b from-zinc-700/30 to-zinc-800/30 border border-white/5 -rotate-12 translate-y-1 pointer-events-none shadow-md" />
-                  <div className="absolute h-16 w-24 rounded-xl bg-gradient-to-b from-zinc-700/50 to-zinc-800/50 border border-white/10 -rotate-6 pointer-events-none shadow-md" />
-                  <div className="absolute h-16 w-24 rounded-xl bg-gradient-to-b from-zinc-600/90 to-zinc-700/90 border border-white/15 flex items-center justify-center shadow-[0_8px_20px_rgba(0,0,0,0.4)]">
-                    <Check className="h-4 w-4 text-emerald-400 stroke-[2.5] drop-shadow-[0_0_8px_rgba(74,222,128,0.4)]" />
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleClearAllCompleted}
-                  className="text-center text-[10px] text-zinc-400 hover:text-zinc-200 transition cursor-pointer active:scale-95 py-0.5 font-medium"
-                >
-                  Clear All Completed Sessions
-                </button>
-              </div>
+              {/* Client Billing & Receipt Tally */}
+              <ClientBillingReceipt
+                session={selectedSession}
+                files={sessionFiles}
+              />
             </aside>
           </>
         ) : (

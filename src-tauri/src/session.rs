@@ -21,20 +21,21 @@ impl SessionManager {
     }
 
     /// Verify that a file_id belongs to the given session (isolation check).
+    #[allow(dead_code)]
     pub async fn verify_file_ownership(&self, file_id: &str, client_ip: &str) -> Result<bool> {
-        let session_id = self.db.get_or_create_session(client_ip).await?;
+        let _session_id = self.db.get_or_create_session(client_ip).await?;
         let upload = self.db.find_upload_by_file_id(file_id).await?;
         match upload {
             Some(u) => {
                 // Check if session_id from DB query on the upload matches
                 // the session for this IP
-                let upload_sessions = self.db.list_session_uploads(&u.id).await;
+                let _upload_sessions = self.db.list_session_uploads(&u.id).await;
                 // Simpler: just check the upload's session_id
                 Ok(u.id != "" && {
                     // Re-fetch: the upload record stores session_id
                     let upload_detail = self.db.find_upload_by_file_id(file_id).await?;
                     match upload_detail {
-                        Some(ud) => {
+                        Some(_ud) => {
                             // We need to verify the session_id on the upload
                             // matches the session for this client IP
                             // The upload's session_id is stored but we need

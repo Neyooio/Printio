@@ -20,6 +20,7 @@ use crate::storage;
 
 /// Shared state for the upload engine.
 #[derive(Clone)]
+#[allow(dead_code)]
 pub struct UploadState {
     pub db: Database,
     pub session_mgr: SessionManager,
@@ -110,7 +111,7 @@ pub fn upload_router() -> Router<UploadState> {
 async fn handle_upload_status(
     State(state): State<UploadState>,
     Query(query): Query<StatusQuery>,
-    headers: HeaderMap,
+    _headers: HeaderMap,
 ) -> Result<Json<UploadStatusResponse>, (StatusCode, Json<ErrorResponse>)> {
     let file_id = &query.file_id;
 
@@ -428,7 +429,7 @@ async fn handle_upload_complete(
     let temp_path = storage::build_temp_path(&state.storage_dir, &file_id);
 
     // Verify file size matches
-    let actual_size = tokio::fs::metadata(&temp_path)
+    let _actual_size = tokio::fs::metadata(&temp_path)
         .await
         .map_err(|e| {
             error_json(

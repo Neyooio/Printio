@@ -5,6 +5,7 @@ use tauri::State;
 use tokio::sync::RwLock;
 
 /// Managed state available to all Tauri commands.
+#[allow(dead_code)]
 pub struct PrintioState {
     pub db: Database,
     pub storage_dir: PathBuf,
@@ -166,7 +167,7 @@ pub async fn get_gateway_ip(state: State<'_, PrintioState>) -> Result<String, St
 
 #[tauri::command]
 pub async fn set_gateway_ip(
-    state: State<'_, PrintioState>,
+    _state: State<'_, PrintioState>,
     _ip: String,
 ) -> Result<(), String> {
     // Note: Changing gateway IP at runtime would require restarting servers.

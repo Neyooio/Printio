@@ -12,6 +12,7 @@ pub struct Database {
 
 impl Database {
     /// Get a reference to the underlying connection pool.
+    #[allow(dead_code)]
     pub fn pool(&self) -> &SqlitePool {
         &self.pool
     }

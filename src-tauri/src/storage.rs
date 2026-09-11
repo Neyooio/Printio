@@ -21,6 +21,7 @@ const MAGIC_SIGNATURES: &[(&str, &[u8])] = &[
 ];
 
 /// Default storage cap: 4 GB.
+#[allow(dead_code)]
 pub const DEFAULT_STORAGE_CAP_BYTES: u64 = 4 * 1024 * 1024 * 1024;
 
 /// Validate that a filename has an allowed extension.
@@ -129,6 +130,7 @@ pub fn build_temp_path(base_dir: &Path, file_id: &str) -> PathBuf {
 }
 
 /// Calculate the total size of a directory recursively.
+#[allow(dead_code)]
 pub async fn calculate_dir_size(dir: &Path) -> Result<u64> {
     let mut total: u64 = 0;
 
